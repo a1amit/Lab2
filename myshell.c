@@ -11,50 +11,46 @@
 
 void printPrompt();
 cmdLine *parseInput(char *input);
-void execute(cmdLine *pCmdLine);
+void execute(cmdLine *pCmdLine, int debugFlag);
 
-int main()
+int main(int argc, char *argv[])
 {
+    int debugFlag = 0; // Initialize the debug flag to 0 (disabled)
+
+    // Check if the "-d" flag is provided
+    if (argc > 1 && strcmp(argv[1], "-d") == 0)
+    {
+        debugFlag = 1; // Enable debug mode
+    }
+
     while (1)
     {
         printPrompt();
 
         char input[MAX_INPUT_SIZE];
-        if (fgets(input, MAX_INPUT_SIZE, stdin) == NULL)
+        if (fgets(input, MAX_INPUT_SIZE, stdin) == NULL) // checks if the user entered anything at all
         {
             perror("Error reading input");
             exit(EXIT_FAILURE);
         }
 
-        // Remove newline character if present
-        size_t input_len = strlen(input);
-        if (input_len > 0 && input[input_len - 1] == '\n')
-        {
-            input[input_len - 1] = '\0';
-        }
-
         // Check if the command is "quit"
-        if (strcmp(input, "quit") == 0)
+        if (strcmp(input, "quit\n") == 0)
         {
-            printf("Exiting shell normally.\n");
-            break;
+            break; // Exit the infinite loop
         }
 
         // Parse the input
         cmdLine *parsedCmd = parseCmdLines(input);
-        if (parsedCmd == NULL)
-        {
-            fprintf(stderr, "Error parsing command line.\n");
-            exit(EXIT_FAILURE);
-        }
 
         // Execute the command
-        execute(parsedCmd);
+        execute(parsedCmd, debugFlag);
 
         // Free resources
         freeCmdLines(parsedCmd);
     }
 
+    printf("Exiting shell normally.\n");
     return 0;
 }
 
@@ -72,7 +68,18 @@ void printPrompt()
     }
 }
 
-void execute(cmdLine *pCmdLine)
+cmdLine *parseInput(char *input)
+{
+    cmdLine *parsedCmd = parseCmdLines(input);
+    if (parsedCmd == NULL)
+    {
+        fprintf(stderr, "Error parsing command line.\n");
+        exit(EXIT_FAILURE);
+    }
+    return parsedCmd;
+}
+
+void execute(cmdLine *pCmdLine, int debugFlag)
 {
     pid_t child_pid = fork();
 
@@ -85,10 +92,16 @@ void execute(cmdLine *pCmdLine)
     if (child_pid == 0)
     {
         // Child process
+        if (debugFlag)
+        {
+            fprintf(stderr, "PID: %d\n", getpid());
+            fprintf(stderr, "Executing command: %s\n", pCmdLine->arguments[0]);
+        }
+
         if (execvp(pCmdLine->arguments[0], pCmdLine->arguments) == -1)
         {
             perror("execvp");
-            exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE); // Use _exit to terminate the process if execvp fails
         }
     }
     else
