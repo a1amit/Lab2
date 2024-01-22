@@ -12,4 +12,4 @@ LineParser.o: LineParser.c LineParser.h
 .PHONY: clean
 
 clean:
-	rm -f *.o myshell
+	rm -f *.o *.txt myshell
