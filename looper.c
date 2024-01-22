@@ -23,6 +23,9 @@ int main(int argc, char **argv)
     return 0;
 }
 
+/*
+task 0b
+*/
 void handler(int sig)
 {
     // Print the received signal with a message for debbugging purposes

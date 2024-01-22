@@ -107,13 +107,14 @@ void execute(cmdLine *pCmdLine, int debugFlag)
     else
     {
         // Parent process
-        int status;
-        waitpid(child_pid, &status, 0);
-
-        if (status == -1)
+        if (pCmdLine->blocking) //task 1b can be tested with ls and ls &(blocking and non blocking)
         {
-            perror("waitpid");
-            exit(EXIT_FAILURE);
+            int status;
+            if (waitpid(child_pid, &status, 0) == -1)
+            {
+                perror("waitpid");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }
