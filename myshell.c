@@ -81,39 +81,53 @@ cmdLine *parseInput(char *input)
 
 void execute(cmdLine *pCmdLine, int debugFlag)
 {
-    pid_t child_pid = fork();
-
-    if (child_pid == -1)
+    if (strcmp(pCmdLine->arguments[0], "cd") == 0)
     {
-        perror("fork");
-        exit(EXIT_FAILURE);
-    }
-
-    if (child_pid == 0)
-    {
-        // Child process
-        if (debugFlag)
+        // Handle "cd" command separately
+        if (chdir(pCmdLine->arguments[1]) == -1)
         {
-            fprintf(stderr, "PID: %d\n", getpid());
-            fprintf(stderr, "Executing command: %s\n", pCmdLine->arguments[0]);
-        }
-
-        if (execvp(pCmdLine->arguments[0], pCmdLine->arguments) == -1)
-        {
-            perror("execvp");
-            _exit(EXIT_FAILURE); // Use _exit to terminate the process if execvp fails
+            perror("chdir");
+            fprintf(stderr, "Error: Unable to change directory to %s\n", pCmdLine->arguments[1]);
         }
     }
     else
     {
-        // Parent process
-        if (pCmdLine->blocking) //task 1b can be tested with ls and ls &(blocking and non blocking)
+        pid_t child_pid = fork();
+
+        if (child_pid == -1)
         {
-            int status;
-            if (waitpid(child_pid, &status, 0) == -1)
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+
+        if (child_pid == 0)
+        {
+            // Child process
+            if (debugFlag)
             {
-                perror("waitpid");
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "PID: %d\n", getpid());
+                fprintf(stderr, "Executing command: %s\n", pCmdLine->arguments[0]);
+            }
+
+            if (execvp(pCmdLine->arguments[0], pCmdLine->arguments) == -1)
+            {
+                perror("execvp");
+                _exit(EXIT_FAILURE); // Use _exit to terminate the process if execvp fails
+            }
+        }
+        else
+        {
+            // Parent process
+            if (pCmdLine->blocking)
+            {
+                int status;
+                waitpid(child_pid, &status, 0);
+
+                if (status == -1)
+                {
+                    perror("waitpid");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
     }
