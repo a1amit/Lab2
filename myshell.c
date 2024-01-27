@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <linux/limits.h>
 #include <string.h>
+#include <signal.h>
 #include "LineParser.h"
 
 #define MAX_INPUT_SIZE 2048
@@ -89,6 +90,26 @@ void execute(cmdLine *pCmdLine, int debugFlag)
             perror("chdir");
             fprintf(stderr, "Error: Unable to change directory to %s\n", pCmdLine->arguments[1]);
         }
+    } else if(strcmp(pCmdLine->arguments[0], "nuke") == 0) {
+        // Handle "nuke" command seperateley
+        int pidToNuke = atoi(pCmdLine->arguments[1]);
+
+        // send the signal to the process with wrapper kill
+        if(kill((pid_t)pidToNuke, SIGKILL) == 0)
+            fprintf(stdout, "Nuked process %d\n", pidToNuke);
+        else 
+            fprintf(stderr, "Error: Unable to nuke process %d\n", pidToNuke);
+        
+    } else if(strcmp(pCmdLine->arguments[0], "wakeup") == 0) {
+        // Handle "wakeup" command seperateley
+        int pidToWake = atoi(pCmdLine->arguments[1]);
+
+        // send the signal to the process with wrapper kill
+        if(kill((pid_t)pidToWake, SIGCONT) == 0)
+            fprintf(stdout, "Woke up process %d\n", pidToWake);
+        else 
+            fprintf(stderr, "Error: Unable to wake up process %d\n", pidToWake);
+
     }
     else
     {
