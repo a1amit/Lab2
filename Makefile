@@ -1,4 +1,4 @@
-all: myshell clean
+all: clean myshell
 
 myshell: myshell.o LineParser.o
 	gcc -m32 -g -Wall -o myshell myshell.o LineParser.o
