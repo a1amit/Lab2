@@ -1,4 +1,4 @@
-all: clean myshell
+all: myshell mypipe
 
 myshell: myshell.o LineParser.o
 	gcc -m32 -g -Wall -o myshell myshell.o LineParser.o
@@ -19,4 +19,4 @@ mypipe.o: mypipe.c
 .PHONY: clean
 
 clean:
-	rm -f *.o *.txt myshell
+	rm -f *.o *.txt myshell mypipe
